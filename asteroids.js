@@ -107,29 +107,33 @@ function update() {
         ship.thrust.y -= SHIP_THRUST*Math.sin(ship.angle) / FPS;
 
         // Little flame behing the ship when thrusting
-        // Draw Triangular shape
-        context.fillStyle = "red";
+        // Draw Triangular Spaceship
         context.strokeStyle = "yellow";
-        context.lineWidth = SHIP_SIZE/50;
+        context.fillStyle = "red"
+        context.lineWidth = SHIP_SIZE/20;
         context.beginPath();
         // Nose of the Spaceship
         context.moveTo( 
-            ship.x + 4/3*ship.radius*Math.cos(ship.angle),
-            ship.y - 4/3*ship.radius*Math.sin(ship.angle)
+            ship.x - ship.radius*(2/3*Math.cos(ship.angle) + 0.5*Math.sin(ship.angle)),
+            ship.y + ship.radius*(Math.sin(ship.angle) - 0.5*Math.cos(ship.angle))
             );
         // Left side
         context.lineTo(
-            ship.x - ship.radius*(2/3*Math.cos(ship.angle) + Math.sin(ship.angle)),
-            ship.y + ship.radius*(Math.sin(ship.angle) - Math.cos(ship.angle))
+            ship.x - 6/3*ship.radius*Math.cos(ship.angle),
+            ship.y + 6/3*ship.radius*Math.sin(ship.angle)
         );
         // Right side
         context.lineTo(
-            ship.x - ship.radius*(2/3*Math.cos(ship.angle) - Math.sin(ship.angle)),
-            ship.y + ship.radius*(Math.sin(ship.angle) + Math.cos(ship.angle))
+            ship.x - ship.radius*(2/3*Math.cos(ship.angle) - 0.5*Math.sin(ship.angle)),
+            ship.y + ship.radius*(Math.sin(ship.angle) + 0.5*Math.cos(ship.angle))
         );
         context.closePath();
+        context.fill();
         context.stroke();
-    
+        
+        // Center Dot
+        context.fillStyle = "red";
+        context.fillRect(ship.x, ship.y, 1, 1);
     }
     else{
         ship.thrust.x -= FRICTION*ship.thrust.x / FPS;
