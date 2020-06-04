@@ -7,7 +7,7 @@ const ASTEROIDS_NUM = 3; // initial asteroids numbers
 const ASTEROID_SPD = 20; // starting speed in pixels/s
 const ASTEROID_SIZE = 100; // in pixels
 const ASTEROID_SIDES = 10; // number of side of each asteroid created
-const ASTEROIDS_IMPERFECTION = 0.4; // 0 none, 1 really imperfect
+const ASTEROIDS_IMPERFECTION = 0.4; // 0 none, 1 really
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("gameCanvas");
@@ -25,8 +25,6 @@ let ship = {
     },
     offset: []
 }
-
-
 
 let asteroids = [];
 createAsteroidBelt();
@@ -144,7 +142,7 @@ function update() {
     context.stroke();
 
         // Draw the asteroids
-        context.fillStyle = "grey";
+        context.strokeStyle = "slategrey";
         context.lineWidth = SHIP_SIZE / 20;
     
         let x, y, radius, angle, sides, offset = [];
@@ -177,8 +175,21 @@ function update() {
             context.stroke();
             
             //move the asteroid
-    
+            asteroids[i].x += asteroids[i].xv;
+            asteroids[i].y += asteroids[i].yv;
+
             //handle edge of screen
+            if( asteroids[i].x < 0 - asteroids[i].radius){
+                asteroids[i].x = canvas.width + asteroids[i].radius;
+            }else if( asteroids[i].x > canvas.width + asteroids[i].radius){
+                asteroids[i].x = -asteroids[i].radius;
+            }
+
+            if( asteroids[i].y < 0 - asteroids[i].radius){
+                asteroids[i].y = canvas.height + asteroids[i].radius;
+            }else if( asteroids[i].y > canvas.height + asteroids[i].radius){
+                asteroids[i].y = -asteroids[i].radius;
+            }
         }
 
     // Thrusting
