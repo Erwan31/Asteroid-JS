@@ -64,7 +64,7 @@ function createAsteroidBelt() {
             x = Math.floor(Math.random()*canvas.width);
             y = Math.floor(Math.random()*canvas.height);
         }while(distBetweenPoints( ship.x, ship.y, x, y ) < (ASTEROID_SIZE*2 + ship.radius));
-        asteroids.push(newAsteroid( x, y));
+        asteroids.push(newAsteroid( x, y, Math.ceil(ASTEROID_SIZE / 2)));
     }
 }
 
@@ -72,13 +72,13 @@ function distBetweenPoints( shipX, shipY, x, y){
     return Math.sqrt(Math.pow(shipX - x, 2) + Math.pow(shipY - y, 2));
 }
 
-function newAsteroid( x, y) {
+function newAsteroid( x, y, radius) {
     let asteroid = {
         x: x,
-        y, y,
+        y: y,
         xv: Math.random() * ASTEROID_SPD / FPS * (Math.random() < 0.5 ? 1: -1),
         yv: Math.random() * ASTEROID_SPD / FPS * (Math.random() < 0.5 ? 1: -1),
-        radius: ASTEROID_SIZE / 2,
+        radius: radius,
         angle: Math.random() * Math.PI * 2,
         side: Math.floor(Math.random() * (ASTEROID_SIDES + 1) + ASTEROID_SIDES / 2),
         offset: []
@@ -89,6 +89,19 @@ function newAsteroid( x, y) {
     }
 
     return asteroid;
+}
+
+function destroyAsteroid(index ){
+
+    let x = asteroids[index].x;
+    let y = asteroids[index].y;
+    let radius = asteroids[index].radius;
+    
+    if( radius > ASTEROID_SIZE/6){
+        asteroids.push(newAsteroid( x, y, radius / 2));
+        asteroids.push(newAsteroid( x, y, radius / 2));
+    }
+    asteroids.splice(index, 1);
 }
 
 function newShip(){
@@ -268,7 +281,7 @@ function update() {
 
     // Detect Laser shoots on asteroids
     let ax, ay, ar, lx, ly;
-    
+
     for( let i = asteroids.length -1; i >= 0; i--){
         // get asteroids
         ax = asteroids[i].x;
@@ -287,8 +300,8 @@ function update() {
                 // remove laser
                 ship.lasers.splice(j,1);
 
-                //remove asteroid
-                asteroids.splice(i, 1);
+                // destroy asteroid
+                destroyAsteroid(i);
 
                 break;
             }
@@ -301,7 +314,7 @@ function update() {
 
     let x, y, radius, angle, sides, offset = [];
 
-    for( var i = 0; i < asteroids.length; i++){
+    for( let i = 0; i < asteroids.length; i++){
         // Asteroid props
         x = asteroids[i].x;
         y = asteroids[i].y;
