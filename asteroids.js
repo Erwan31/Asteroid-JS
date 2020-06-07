@@ -14,6 +14,7 @@ const ASTEROIDS_IMPERFECTION = 0.4; // 0 none, 1 really
 const SHOW_BOUNDING = false; // show or hide collison bounding
 const LASER_MAX = 3; // max num of laser at once
 const LASER_SPEED = 500; // speed of the laser in pixels/sec
+const LASER_EXPLOSION_TIME = 0.3; // animation time when touching an asteroid
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("gameCanvas");
@@ -45,6 +46,7 @@ function shootLaser() {
             y: ship.y - 4/3*ship.radius*Math.sin(ship.angle),
             xv: LASER_SPEED * Math.cos(ship.angle) / FPS,
             yv:  -LASER_SPEED * Math.sin(ship.angle) / FPS,
+            explodeTime: 0,
         })
     }
 
@@ -273,10 +275,43 @@ function update() {
 
     // Draw the lasers
     for( let i = 0; i < ship.lasers.length; i++){
-        context.fillStyle = "salmon";
-        context.beginPath();
-        context.arc(ship.lasers[i].x, ship.lasers[i].y, SHIP_SIZE/ 15, 0, Math.PI * 2, false);
-        context.fill();
+        if( ship.lasers[i].explodeTime === 0){
+            context.fillStyle = "salmon";
+            context.beginPath();
+            context.arc(ship.lasers[i].x, ship.lasers[i].y, SHIP_SIZE/ 15, 0, Math.PI * 2, false);
+            context.fill();
+        }
+        else{
+            //console.log(ship.lasers[i].x, ship.lasers[i].y);
+            
+            // Explosion of the laser
+            // Draw the explosion
+            // Draw the explosion
+            context.fillStyle = "Salmon";
+            context.beginPath();
+            context.arc(ship.lasers[i].x + 1.5*Math.random()*ship.radius, ship.lasers[i].y - Math.random()*ship.radius, ship.radius*0.3, 0, Math.PI*2, false);
+            context.closePath();
+            context.fill();
+            context.stroke();
+            context.fillStyle = "Salmon";
+            context.beginPath();
+            context.arc(ship.lasers[i].x + Math.random()*ship.radius, ship.lasers[i].y + Math.random()*ship.radius, ship.radius*0.6, 0, Math.PI*2, false);
+            context.closePath();
+            context.fill();
+            context.stroke();
+            context.fillStyle = "slategrey";
+            context.beginPath();
+            context.arc(ship.lasers[i].x - Math.random()*ship.radius, ship.lasers[i].y + 2*Math.random()*ship.radius, ship.radius*0.3, 0, Math.PI*2, false);
+            context.closePath();
+            context.fill();
+            context.stroke();
+            context.fillStyle = "pink";
+            context.beginPath();
+            context.arc(ship.lasers[i].x + 2*Math.random()*ship.radius, ship.lasers[i].y - Math.random()*ship.radius, ship.radius*0.2, 0, Math.PI*2, false);
+            context.closePath();
+            context.fill();
+            context.stroke();
+        }
     }
 
     // Detect Laser shoots on asteroids
@@ -295,12 +330,10 @@ function update() {
             ly = ship.lasers[j].y;
 
             // Detect hit
-            if( distBetweenPoints( ax, ay, lx, ly) < ar){
+            if( distBetweenPoints( ax, ay, lx, ly) < ar && ship.lasers[j].explodeTime === 0){
 
-                // remove laser
-                ship.lasers.splice(j,1);
-
-                // destroy asteroid
+                // destroy asteroid & activate laser explosion
+                ship.lasers[j].explodeTime = Math.ceil( LASER_EXPLOSION_TIME * FPS );
                 destroyAsteroid(i);
 
                 break;
@@ -440,7 +473,7 @@ function update() {
         }
         else if( ship.y > canvas.width + ship.radius){
             ship.y = -ship.radius;
-        }
+        } 
     }
     else{
         ship.explodeTime--;
@@ -451,14 +484,29 @@ function update() {
 
     // Move the lasers
     for( let i = ship.lasers.length -1; i >= 0 ; i--){
-        ship.lasers[i].x += ship.lasers[i].xv;
-        ship.lasers[i].y += ship.lasers[i].yv;
 
-        // Handle edge of screen
-        if( (ship.lasers[i].x > (canvas.width + ship.radius)) || (ship.lasers[i].x < 0 - ship.radius)
-            || (ship.lasers[i].y > (canvas.height + ship.radius)) || (ship.lasers[i].y < 0 - ship.radius) ){
+        // laser explosion
+        if( ship.lasers[i].explodeTime > 0){
+            ship.lasers[i].explodeTime--;
+
+            if(ship.lasers[i].explodeTime === 0){
                 ship.lasers.splice(i, 1);
                 continue;
+            }
+
+        } else{
+            // laser moving
+            ship.lasers[i].x += ship.lasers[i].xv;
+            ship.lasers[i].y += ship.lasers[i].yv;
+
+            // Handle edge of screen
+            if( (ship.lasers[i].x > (canvas.width + ship.radius)) || (ship.lasers[i].x < 0 - ship.radius)
+                || (ship.lasers[i].y > (canvas.height + ship.radius)) || (ship.lasers[i].y < 0 - ship.radius) ){
+                    ship.lasers.splice(i, 1);
+                    continue;
+            }
         }
+
+        
     }
 }
