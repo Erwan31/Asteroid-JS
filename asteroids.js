@@ -372,6 +372,12 @@ function update() {
         for( let roid = 0; roid < asteroids.length; roid++){
             if(distBetweenPoints( ship.x, ship.y, asteroids[roid].x, asteroids[roid].y) < ship.radius + asteroids[roid].radius){
                 explodeShip();
+
+                // destroy asteroid
+                destroyAsteroid(roid);
+
+                // Avoid destruction of multiple asteroids
+                break;
             }
         }
     }
