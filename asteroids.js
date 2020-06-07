@@ -3,8 +3,8 @@ const SHIP_SIZE = 30;
 const TURN_SPEED = 360;
 const SHIP_THRUST = 5;  // acceleration base number in pixels
 const SHIP_EXPLODE_DUR = 1;  // explosion duration explosion
-const SHIP_INVICIBLE_DUR = 3;  // explosion duration explosion
-const SHIP_INVICIBLE_BLINK = 1;  // explosion duration explosion
+const SHIP_BLINK_DUR = 0.1;  // explosion duration explosion
+const SHIP_INVICIBLE_DUR = 1;  // explosion duration explosion
 const FRICTION = 0.7; // when not accelerating anymore
 const ASTEROIDS_NUM = 3; // initial asteroids numbers
 const ASTEROID_SPD = 20; // starting speed in pixels/s
@@ -21,8 +21,8 @@ let ship = {
     y: canvas.height/2,
     radius: SHIP_SIZE/2,
     angle: 90/180 * Math.PI,
-    blinkNum: Math.ceil(SHIP_INVICIBLE_BLINK * FPS),
-    blinkTime: Math.ceil(SHIP_INVICIBLE_DUR * FPS),
+    blinkNum: Math.ceil(SHIP_INVICIBLE_DUR * FPS),
+    blinkTime: Math.ceil(SHIP_BLINK_DUR * FPS),
     rot: 0,
     explodeTime: 0,
     thrusting: false,
@@ -80,6 +80,8 @@ function newShip(){
     angle: 90/180 * Math.PI,
     rot: 0,
     explodeTime: 0,
+    blinkNum: Math.ceil(SHIP_INVICIBLE_DUR * FPS),
+    blinkTime: Math.ceil(SHIP_BLINK_DUR * FPS),
     thrusting: false,
     thrust: {
         x: 0,
@@ -91,7 +93,7 @@ function newShip(){
 }
 
 function explodeShip() {
-    console.log("Explode!");
+    //console.log("Explode!");
     ship.explodeTime = Math.ceil(SHIP_EXPLODE_DUR * FPS);
 }
 
@@ -146,6 +148,7 @@ function keyUp( /** @type {KeyboardEvent} */ e){
 
 function update() {
     let exploding = ship.explodeTime > 0;
+    let blinkOn = (ship.blinkNum%2 === 0);
 
     // Draw Space
     context.fillStyle = "black";
@@ -153,36 +156,51 @@ function update() {
 
     // Draw Triangular Spaceship
     if(!exploding){
-        context.strokeStyle = "white";
-        context.lineWidth = SHIP_SIZE/20;
-        context.beginPath();
-
-        // Nose of the Spaceship
-        context.moveTo( 
-            ship.x + 4/3*ship.radius*Math.cos(ship.angle),
-            ship.y - 4/3*ship.radius*Math.sin(ship.angle)
-            );
-        // Left side
-        context.lineTo(
-            ship.x - ship.radius*(2/3*Math.cos(ship.angle) + Math.sin(ship.angle)),
-            ship.y + ship.radius*(Math.sin(ship.angle) - Math.cos(ship.angle))
-        );
-        // Right side
-        context.lineTo(
-            ship.x - ship.radius*(2/3*Math.cos(ship.angle) - Math.sin(ship.angle)),
-            ship.y + ship.radius*(Math.sin(ship.angle) + Math.cos(ship.angle))
-        );
-        context.closePath();
-        context.stroke();
-
-        if(SHOW_BOUNDING){
-            context.strokeStyle = "lime";
+        if(blinkOn){
+            context.strokeStyle = "white";
+            context.lineWidth = SHIP_SIZE/20;
             context.beginPath();
-            context.arc(ship.x, ship.y, ship.radius, 0, Math.PI*2, false);
+
+            // Nose of the Spaceship
+            context.moveTo( 
+                ship.x + 4/3*ship.radius*Math.cos(ship.angle),
+                ship.y - 4/3*ship.radius*Math.sin(ship.angle)
+                );
+            // Left side
+            context.lineTo(
+                ship.x - ship.radius*(2/3*Math.cos(ship.angle) + Math.sin(ship.angle)),
+                ship.y + ship.radius*(Math.sin(ship.angle) - Math.cos(ship.angle))
+            );
+            // Right side
+            context.lineTo(
+                ship.x - ship.radius*(2/3*Math.cos(ship.angle) - Math.sin(ship.angle)),
+                ship.y + ship.radius*(Math.sin(ship.angle) + Math.cos(ship.angle))
+            );
+            context.closePath();
             context.stroke();
+
+            if(SHOW_BOUNDING){
+                context.strokeStyle = "lime";
+                context.beginPath();
+                context.arc(ship.x, ship.y, ship.radius, 0, Math.PI*2, false);
+                context.stroke();
+            }
+        }
+
+        //Handle blinking
+        if(ship.blinkNum > 0){
+            // Reduce blink time
+            ship.blinkTime--;
+
+            // Reduce Blink Num
+            if(ship.blinkTime === 0){
+                ship.blinkTime = Math.ceil(SHIP_BLINK_DUR * FPS);
+                ship.blinkNum--;
+                //console.log(ship.blinkNum);
+            }
         }
     } else{
-        // draw the explosion
+        // Draw the explosion
         context.fillStyle = "yellow";
         context.beginPath();
         context.arc(ship.x + 1.5*Math.random()*ship.radius, ship.y - Math.random()*ship.radius, ship.radius*0.6, 0, Math.PI*2, false);
@@ -216,7 +234,7 @@ function update() {
     let x, y, radius, angle, sides, offset = [];
 
     for( var i = 0; i < asteroids.length; i++){
-        // asteroid props
+        // Asteroid props
         x = asteroids[i].x;
         y = asteroids[i].y;
         angle = asteroids[i].angle;
@@ -226,13 +244,13 @@ function update() {
 
         //console.log( x, y, angle, radius, sides);
 
-        //draw a path
+        // Draw a path
         context.beginPath();
         context.moveTo(
             x + radius*offset[0]*Math.cos(angle),
             y + radius*offset[0]*Math.sin(angle)
         )
-        //draw a polygon
+        // Draw a polygon
         for( var side_poly = 1; side_poly < sides; side_poly++){
             context.lineTo(
                 x + radius*offset[side_poly]*Math.cos( angle + side_poly*Math.PI* 2 / sides),
@@ -250,11 +268,11 @@ function update() {
             context.stroke();
         }
 
-        //move the asteroid
+        // Move the asteroid
         asteroids[i].x += asteroids[i].xv;
         asteroids[i].y += asteroids[i].yv;
 
-        //handle edge of screen
+        // Handle edge of screen
         if( asteroids[i].x < 0 - asteroids[i].radius){
             asteroids[i].x = canvas.width + asteroids[i].radius;
         }else if( asteroids[i].x > canvas.width + asteroids[i].radius){
@@ -269,7 +287,7 @@ function update() {
     }
 
     // Check for an asteroid collision
-    if(!exploding){
+    if(!exploding && ship.blinkNum === 0 ){
         for( let roid = 0; roid < asteroids.length; roid++){
             if(distBetweenPoints( ship.x, ship.y, asteroids[roid].x, asteroids[roid].y) < ship.radius + asteroids[roid].radius){
                 explodeShip();
@@ -279,33 +297,35 @@ function update() {
 
     // Thrusting
     if(ship.thrusting && !exploding){
-        ship.thrust.x += SHIP_THRUST*Math.cos(ship.angle) / FPS;
-        ship.thrust.y -= SHIP_THRUST*Math.sin(ship.angle) / FPS;
+        if(blinkOn){
+            ship.thrust.x += SHIP_THRUST*Math.cos(ship.angle) / FPS;
+            ship.thrust.y -= SHIP_THRUST*Math.sin(ship.angle) / FPS;
 
-        // Little flame behing the ship when thrusting
-        // Draw Triangular Spaceship
-        context.strokeStyle = "yellow";
-        context.fillStyle = "red";
-        context.lineWidth = SHIP_SIZE/20;
-        context.beginPath();
-        // Nose of the Spaceship
-        context.moveTo( 
-            ship.x - ship.radius*(2/3*Math.cos(ship.angle) + 0.5*Math.sin(ship.angle)),
-            ship.y + ship.radius*(Math.sin(ship.angle) - 0.5*Math.cos(ship.angle))
+            // Little flame behing the ship when thrusting
+            // Draw Triangular Spaceship
+            context.strokeStyle = "yellow";
+            context.fillStyle = "red";
+            context.lineWidth = SHIP_SIZE/20;
+            context.beginPath();
+            // Nose of the Spaceship
+            context.moveTo( 
+                ship.x - ship.radius*(2/3*Math.cos(ship.angle) + 0.5*Math.sin(ship.angle)),
+                ship.y + ship.radius*(Math.sin(ship.angle) - 0.5*Math.cos(ship.angle))
+                );
+            // Left side
+            context.lineTo(
+                ship.x - 6/3*ship.radius*Math.cos(ship.angle),
+                ship.y + 6/3*ship.radius*Math.sin(ship.angle)
             );
-        // Left side
-        context.lineTo(
-            ship.x - 6/3*ship.radius*Math.cos(ship.angle),
-            ship.y + 6/3*ship.radius*Math.sin(ship.angle)
-        );
-        // Right side
-        context.lineTo(
-            ship.x - ship.radius*(2/3*Math.cos(ship.angle) - 0.5*Math.sin(ship.angle)),
-            ship.y + ship.radius*(Math.sin(ship.angle) + 0.5*Math.cos(ship.angle))
-        );
-        context.closePath();
-        context.fill();
-        context.stroke();
+            // Right side
+            context.lineTo(
+                ship.x - ship.radius*(2/3*Math.cos(ship.angle) - 0.5*Math.sin(ship.angle)),
+                ship.y + ship.radius*(Math.sin(ship.angle) + 0.5*Math.cos(ship.angle))
+            );
+            context.closePath();
+            context.fill();
+            context.stroke();
+        }
     }
     else{
         ship.thrust.x -= FRICTION*ship.thrust.x / FPS;
