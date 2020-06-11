@@ -15,6 +15,8 @@ const SHOW_BOUNDING = false; // show or hide collison bounding
 const LASER_MAX = 6; // max num of laser at once
 const LASER_SPEED = 500; // speed of the laser in pixels/sec
 const LASER_EXPLOSION_TIME = 0.3; // animation time when touching an asteroid
+const TEXT_FADE_TIME = 2.5 // text fade time in sec
+const TEXT_SIZE = 40 // text font size in px
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("gameCanvas");
@@ -150,6 +152,8 @@ function newGame() {
 }
 
 function newLevel(){
+    text = "Level " + (level + 1);
+    textAlpha = 1.0;
     createAsteroidBelt();
 }
 
@@ -332,6 +336,16 @@ function update() {
             context.fill();
             context.stroke();
         }
+    }
+
+    // Draw the game text
+    if( textAlpha >= 0){
+        context.fillStyle = "rgba(255,255,255," + textAlpha + ")";
+        context.textAlign = "center";
+        context.textBaseAlign = "middle";
+        context.font = "small-caps " + TEXT_SIZE + "px dejavu sans mono";
+        context.fillText( text, canvas.width /2, canvas.height*0.75);
+        textAlpha -= (1.0/ (TEXT_FADE_TIME * FPS));
     }
 
     // Detect Laser shoots on asteroids
