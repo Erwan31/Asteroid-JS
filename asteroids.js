@@ -6,13 +6,13 @@ const SHIP_EXPLODE_DUR = 1;  // explosion duration explosion
 const SHIP_BLINK_DUR = 0.1;  // explosion duration explosion
 const SHIP_INVICIBLE_DUR = 1;  // explosion duration explosion
 const FRICTION = 0.7; // when not accelerating anymore
-const ASTEROIDS_NUM = 3; // initial asteroids numbers
+const ASTEROIDS_NUM = 1; // initial asteroids numbers
 const ASTEROID_SPD = 20; // starting speed in pixels/s
 const ASTEROID_SIZE = 100; // in pixels
 const ASTEROID_SIDES = 10; // number of side of each asteroid created
 const ASTEROIDS_IMPERFECTION = 0.4; // 0 none, 1 really
 const SHOW_BOUNDING = false; // show or hide collison bounding
-const LASER_MAX = 3; // max num of laser at once
+const LASER_MAX = 6; // max num of laser at once
 const LASER_SPEED = 500; // speed of the laser in pixels/sec
 const LASER_EXPLOSION_TIME = 0.3; // animation time when touching an asteroid
 
@@ -38,6 +38,12 @@ let ship = {
     canShoot: true,
 }
 
+let asteroids = [], level, text, textAlpha;
+createAsteroidBelt();
+
+// Set up game parameters
+newGame();
+
 function shootLaser() {
     // Create laser object
     if( ship.canShoot && ship.lasers.length < LASER_MAX ){
@@ -54,14 +60,11 @@ function shootLaser() {
     ship.canShoot = false;
 }
 
-let asteroids = [];
-createAsteroidBelt();
-
 function createAsteroidBelt() {
     asteroids = [];
     let x, y;
 
-    for( let i = 0; i < ASTEROIDS_NUM; i++){
+    for( let i = 0; i < ASTEROIDS_NUM + level; i++){
         do{
             x = Math.floor(Math.random()*canvas.width);
             y = Math.floor(Math.random()*canvas.height);
@@ -75,11 +78,12 @@ function distBetweenPoints( shipX, shipY, x, y){
 }
 
 function newAsteroid( x, y, radius) {
+    let levelMultipler = 1+ 0.1*level;
     let asteroid = {
         x: x,
         y: y,
-        xv: Math.random() * ASTEROID_SPD / FPS * (Math.random() < 0.5 ? 1: -1),
-        yv: Math.random() * ASTEROID_SPD / FPS * (Math.random() < 0.5 ? 1: -1),
+        xv: Math.random() * ASTEROID_SPD * levelMultipler / FPS * (Math.random() < 0.5 ? 1: -1),
+        yv: Math.random() * ASTEROID_SPD * levelMultipler / FPS * (Math.random() < 0.5 ? 1: -1),
         radius: radius,
         angle: Math.random() * Math.PI * 2,
         side: Math.floor(Math.random() * (ASTEROID_SIDES + 1) + ASTEROID_SIDES / 2),
@@ -104,6 +108,12 @@ function destroyAsteroid(index ){
         asteroids.push(newAsteroid( x, y, radius / 2));
     }
     asteroids.splice(index, 1);
+
+    // New Level when no more asteroids
+    if(asteroids.length === 0){
+        level++;
+        newLevel();
+    }
 }
 
 function newShip(){
@@ -131,6 +141,16 @@ function newShip(){
 function explodeShip() {
     //console.log("Explode!");
     ship.explodeTime = Math.ceil(SHIP_EXPLODE_DUR * FPS);
+}
+
+function newGame() {
+    level = 0;
+    ship = newShip();
+    newLevel();
+}
+
+function newLevel(){
+    createAsteroidBelt();
 }
 
 // Events Listeners
