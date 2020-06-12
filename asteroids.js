@@ -21,7 +21,7 @@ const GAME_LIVES = 3; // starting number of lives
 const ASTEROIDS_POINTS_LARGE = 20; // points scored for large asteroids
 const ASTEROIDS_POINTS_MEDIUM = 50; // points scored for large asteroids
 const ASTEROIDS_POINTS_SMALL = 100; // points scored for large asteroids
-
+const SAVE_KEY_SCORE = "high-score-asteroids"; // save key of highest score for this game
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("gameCanvas");
 let context = canvas.getContext("2d");
@@ -45,7 +45,7 @@ let ship = {
     dead: false,
 }
 
-let asteroids = [], level, text, textAlpha, lives, score, scoreHigh = 0;
+let asteroids = [], level, text, textAlpha, lives, score, scoreHigh;
 createAsteroidBelt();
 
 // Set up game parameters
@@ -120,8 +120,10 @@ function destroyAsteroid( index ){
     else if( radius === ASTEROID_SIZE / 8){ score += ASTEROIDS_POINTS_SMALL; }
     
     // Check for high score
-    if( score > scoreHigh) scoreHigh = score;
-
+    if( score > scoreHigh){
+        scoreHigh = score;
+        localStorage.setItem(SAVE_KEY_SCORE, scoreHigh);
+    }
     // Create new asteroids if not minimal size already
     if( radius > ASTEROID_SIZE/6){
         asteroids.push(newAsteroid( x, y, radius / 2));
@@ -172,6 +174,8 @@ function explodeShip() {
 
 function newGame() {
     score = 0;
+    scoreHigh = localStorage.getItem(SAVE_KEY_SCORE);
+    if( scoreHigh === null) scoreHigh = 0;
     level = 0;
     lives = GAME_LIVES;
     ship = newShip();
@@ -409,10 +413,10 @@ function update() {
 
     //Draw High Score
     context.fillStyle = "white";
-    context.textAlign = "centre";
+    context.textAlign = "center";
     context.textBaseAlign = "middle";
     context.font = "small-caps " + TEXT_SIZE / 2 + "px dejavu sans mono";
-    context.fillText( "Best " + scoreHigh, canvas.width / 2 + SHIP_SIZE*1.33, SHIP_SIZE*2);
+    context.fillText( "Best " + scoreHigh, canvas.width / 2, SHIP_SIZE*2);
     textAlpha -= (1.0/ (TEXT_FADE_TIME * FPS));
 
 
