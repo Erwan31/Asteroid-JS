@@ -18,6 +18,9 @@ const LASER_EXPLOSION_TIME = 0.3; // animation time when touching an asteroid
 const TEXT_FADE_TIME = 2.5 // text fade time in sec
 const TEXT_SIZE = 40 // text font size in px
 const GAME_LIVES = 3; // starting number of lives
+const ASTEROIDS_POINTS_LARGE = 20; // points scored for large asteroids
+const ASTEROIDS_POINTS_MEDIUM = 50; // points scored for large asteroids
+const ASTEROIDS_POINTS_SMALL = 100; // points scored for large asteroids
 
 /** @type {HTMLCanvasElement} */
 let canvas = document.getElementById("gameCanvas");
@@ -42,7 +45,7 @@ let ship = {
     dead: false,
 }
 
-let asteroids = [], level, text, textAlpha, lives;
+let asteroids = [], level, text, textAlpha, lives, score;
 createAsteroidBelt();
 
 // Set up game parameters
@@ -101,12 +104,22 @@ function newAsteroid( x, y, radius) {
     return asteroid;
 }
 
-function destroyAsteroid(index ){
+function destroyAsteroid( index ){
 
     let x = asteroids[index].x;
     let y = asteroids[index].y;
     let radius = asteroids[index].radius;
     
+    // Increase Score
+    if( radius === ASTEROID_SIZE / 2){
+        score += ASTEROIDS_POINTS_LARGE;
+    }
+    else if( radius === ASTEROID_SIZE / 4){
+        score += ASTEROIDS_POINTS_MEDIUM;
+    }
+    else if( radius === ASTEROID_SIZE / 8){ score += ASTEROIDS_POINTS_SMALL; }
+    
+    // Create new asteroids if not minimal size already
     if( radius > ASTEROID_SIZE/6){
         asteroids.push(newAsteroid( x, y, radius / 2));
         asteroids.push(newAsteroid( x, y, radius / 2));
@@ -123,7 +136,7 @@ function destroyAsteroid(index ){
 function gameOver(){
     ship.dead = true;
     text = "Game Over";
-    textAlpha = 1.0;
+    textAlpha = 3.0;
 
 }
 
@@ -155,6 +168,7 @@ function explodeShip() {
 }
 
 function newGame() {
+    score = 0;
     level = 0;
     lives = GAME_LIVES;
     ship = newShip();
@@ -370,6 +384,9 @@ function update() {
         context.fillText( text, canvas.width /2, canvas.height*0.75);
         textAlpha -= (1.0/ (TEXT_FADE_TIME * FPS));
     }
+    else if( ship.dead ){
+        newGame();
+    }
 
     // Draw the lives
     let lifeColour;
@@ -378,6 +395,15 @@ function update() {
         lifeColour = exploding && i === lives - 1 ? "red" : "white";
         drawShip( 30 + i*40, 40, 90/180 * Math.PI, lifeColour);
     }
+
+    //Draw Score
+    context.fillStyle = "white";
+    context.textAlign = "right";
+    context.textBaseAlign = "middle";
+    context.font = "small-caps " + TEXT_SIZE + "px dejavu sans mono";
+    context.fillText( score, canvas.width - SHIP_SIZE, SHIP_SIZE*2);
+    textAlpha -= (1.0/ (TEXT_FADE_TIME * FPS));
+
 
     // Detect Laser shoots on asteroids
     let ax, ay, ar, lx, ly;
@@ -547,7 +573,7 @@ function update() {
     }
     else{
         ship.explodeTime--;
-        if(ship.explodeTime == 0){
+        if(ship.explodeTime == 0 && !ship.dead){
             ship = newShip();
         }
     }
