@@ -45,7 +45,7 @@ let ship = {
     dead: false,
 }
 
-let asteroids = [], level, text, textAlpha, lives, score;
+let asteroids = [], level, text, textAlpha, lives, score, scoreHigh = 0;
 createAsteroidBelt();
 
 // Set up game parameters
@@ -119,6 +119,9 @@ function destroyAsteroid( index ){
     }
     else if( radius === ASTEROID_SIZE / 8){ score += ASTEROIDS_POINTS_SMALL; }
     
+    // Check for high score
+    if( score > scoreHigh) scoreHigh = score;
+
     // Create new asteroids if not minimal size already
     if( radius > ASTEROID_SIZE/6){
         asteroids.push(newAsteroid( x, y, radius / 2));
@@ -402,6 +405,14 @@ function update() {
     context.textBaseAlign = "middle";
     context.font = "small-caps " + TEXT_SIZE + "px dejavu sans mono";
     context.fillText( score, canvas.width - SHIP_SIZE, SHIP_SIZE*2);
+    textAlpha -= (1.0/ (TEXT_FADE_TIME * FPS));
+
+    //Draw High Score
+    context.fillStyle = "white";
+    context.textAlign = "centre";
+    context.textBaseAlign = "middle";
+    context.font = "small-caps " + TEXT_SIZE / 2 + "px dejavu sans mono";
+    context.fillText( "Best " + scoreHigh, canvas.width / 2 + SHIP_SIZE*1.33, SHIP_SIZE*2);
     textAlpha -= (1.0/ (TEXT_FADE_TIME * FPS));
 
 
